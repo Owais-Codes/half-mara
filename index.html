@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Half Marathon Training Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 5px;
+            color: #333;
+            line-height: 1.5;
+            -webkit-text-size-adjust: 100%;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+
+        .progress-section {
+            background: rgba(255,255,255,0.1);
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .progress-bar {
+            background: rgba(255,255,255,0.2);
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-fill {
+            background: white;
+            height: 100%;
+            width: 0%;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            font-size: 0.85rem;
+            text-align: center;
+        }
+
+        .controls {
+            padding: 20px;
+            background: #f8f9fa;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .training-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0;
+        }
+
+        .training-table th {
+            background: #343a40;
+            color: white;
+            padding: 12px 8px;
+            text-align: left;
+            font-size: 0.8rem;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .training-table td {
+            padding: 12px 8px;
+            border-bottom: 1px solid #dee2e6;
+            vertical-align: top;
+            font-size: 0.85rem;
+        }
+
+        .training-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .training-table tr.completed {
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            border-left: 4px solid #28a745;
+        }
+
+        .week-cell {
+            font-weight: 600;
+            color: #495057;
+            white-space: nowrap;
+        }
+
+        .session-cell {
+            font-weight: 600;
+            text-align: center;
+            background: #e9ecef;
+            color: #495057;
+        }
+
+        .distance-cell {
+            font-weight: 500;
+            color: #007bff;
+        }
+
+        .pace-cell {
+            font-weight: 500;
+            color: #dc3545;
+            font-size: 0.8rem;
+        }
+
+        .workout-cell {
+            max-width: 200px;
+            line-height: 1.4;
+            font-size: 0.8rem;
+        }
+
+        .workout-brief {
+            font-weight: 500;
+            color: #495057;
+            margin-bottom: 4px;
+        }
+
+        .workout-details {
+            color: #6c757d;
+            font-size: 0.75rem;
+        }
+
+        .checkbox-cell {
+            text-align: center;
+            width: 50px;
+        }
+
+        .custom-checkbox {
+            width: 32px;
+            height: 32px;
+            border: 2px solid #dee2e6;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: white;
+            font-size: 1.2rem;
+        }
+
+        .custom-checkbox.checked {
+            background: #28a745;
+            border-color: #28a745;
+            color: white;
+        }
+
+        .notes-cell {
+            width: 200px;
+        }
+
+        .notes-input {
+            width: 100%;
+            min-height: 60px;
+            padding: 8px;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            resize: vertical;
+            font-family: inherit;
+            font-size: 0.8rem;
+            line-height: 1.3;
+        }
+
+        .notes-input:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0,123,255,0.1);
+        }
+
+        .phase-header {
+            background: #495057;
+            color: white;
+            font-weight: 600;
+            text-align: center;
+            padding: 12px;
+            font-size: 0.9rem;
+        }
+
+        .stats-summary {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 15px;
+            text-align: center;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .stat-item {
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .stat-number {
+            display: block;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #007bff;
+            margin-bottom: 2px;
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        @media (max-width: 768px) {
+            .training-table th,
+            .training-table td {
+                padding: 8px 4px;
+                font-size: 0.75rem;
+            }
+            
+            .workout-cell {
+                max-width: 150px;
+            }
+            
+            .notes-cell {
+                width: 150px;
+            }
+            
+            .notes-input {
+                min-height: 50px;
+                font-size: 0.75rem;
+            }
+        }
+
+        .export-section {
+            padding: 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #dee2e6;
+            text-align: center;
+        }
+
+        .export-data {
+            display: none;
+            margin-top: 15px;
+            padding: 15px;
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.8rem;
+            text-align: left;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏃‍♀️ Half Marathon Training</h1>
+            <p>23-Week Program • Target: 2:30:00 (7:06/km)</p>
+            <div class="progress-section">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-text" id="progressText">0% Complete</div>
+            </div>
+        </div>
+
+        <div class="stats-summary">
+            <div class="stat-item">
+                <span class="stat-number" id="completedSessions">0</span>
+                <span class="stat-label">Completed</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number" id="totalSessions">46</span>
+                <span class="stat-label">Total</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number" id="currentWeek">1</span>
+                <span class="stat-label">Week</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number" id="totalDistance">0</span>
+                <span class="stat-label">km Done</span>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-primary" onclick="exportData()">📊 Export Progress</button>
+            <button class="btn btn-secondary" onclick="resetData()">🔄 Reset All</button>
+        </div>
+
+        <div class="table-container">
+            <table class="training-table" id="trainingTable">
+                <thead>
+                    <tr>
+                        <th style="width: 60px;">Week</th>
+                        <th style="width: 50px;">Session</th>
+                        <th style="width: 80px;">Target Distance</th>
+                        <th style="width: 80px;">Target Pace</th>
+                        <th style="width: 200px;">Workout Details</th>
+                        <th style="width: 50px;">✓</th>
+                        <th style="width: 200px;">Notes</th>
+                    </tr>
+                </thead>
+                <tbody id="trainingTableBody">
+                </tbody>
+            </table>
+        </div>
+
+        <div class="export-section">
+            <div class="export-data" id="exportData"></div>
+        </div>
+    </div>
+
+    <script>
+        // Training data with detailed workout descriptions
+        const trainingData = [
+            // Weeks 1-4: Base Establishment
+            { week: 1, session: 'A', distance: '~3.2 km', pace: '9:30/km', brief: 'Run-Walk Intervals', details: '30 min total: 2 min run @ 9:30/km, 1.5 min walk (repeat)' },
+            { week: 1, session: 'B', distance: '3 km + strides', pace: 'Easy jog', brief: 'Easy Jog + Strides', details: '3 km easy jog + 4×20 sec strides @ 85% effort, 40 sec walk recovery' },
+            
+            { week: 2, session: 'A', distance: '~4 km', pace: '9:15-9:30/km', brief: 'Extended Run-Walk', details: '35 min: Run 3 min @ 9:15-9:30/km, walk 1 min (repeat 7×)' },
+            { week: 2, session: 'B', distance: '4 km + strides', pace: 'Zone 2', brief: 'Continuous Run + Strides', details: '4 km continuous @ Zone 2 + 3×20 sec strides' },
+            
+            { week: 3, session: 'A', distance: '5 km', pace: '~9:15/km', brief: 'First 5K Continuous', details: '5 km continuous jog @ 9:15/km pace' },
+            { week: 3, session: 'B', distance: '5 km + strides', pace: 'Easy jog', brief: '5K with Km Strides', details: '5 km jog: at each km mark, do 2×30 sec strides @ 85%, 1 min walk' },
+            
+            { week: 4, session: 'A', distance: '4 km', pace: '~9:30/km', brief: 'Recovery Easy Run', details: '4 km easy jog @ 9:30/km (Recovery week)' },
+            { week: 4, session: 'B', distance: '3 km + drills', pace: 'Easy', brief: 'Easy Run + Drills', details: '3 km easy + form drills: high knees, butt kicks, 4×20 sec strides' },
+            
+            // Weeks 5-8: Volume Build & Intro Tempo
+            { week: 5, session: 'A', distance: '7 km', pace: '9:00/km', brief: 'Long Slow Distance', details: '7 km LSD (long slow distance) @ 9:00/km' },
+            { week: 5, session: 'B', distance: '~6 km', pace: '8:00/km intervals', brief: 'First Tempo Intervals', details: '4×4 min @ 8:00/km, 90 sec walk recovery + 2×30 sec strides' },
+            
+            { week: 6, session: 'A', distance: '8 km', pace: '~8:45/km', brief: '8K Continuous', details: '8 km continuous jog @ 8:45/km' },
+            { week: 6, session: 'B', distance: '~6.5 km', pace: '7:30/km intervals', brief: 'Kilometer Repeats', details: '3 km warm-up, 2×1 km @ 7:30/km (2 min walk), 2 km cooldown' },
+            
+            { week: 7, session: 'A', distance: '9 km', pace: '8:30-9:00/km', brief: '9K Long Run', details: '9 km @ 8:30-9:00/km steady pace' },
+            { week: 7, session: 'B', distance: '~6.5 km', pace: '7:15-7:30/km', brief: '2K Repeats', details: '2×2 km @ 7:15-7:30/km, 2 min walk recovery' },
+            
+            { week: 8, session: 'A', distance: '6 km', pace: '9:30/km', brief: 'Recovery Easy Run', details: '6 km easy @ 9:30/km (Recovery week)' },
+            { week: 8, session: 'B', distance: '5 km + drills', pace: 'Steady', brief: 'Steady Run + Drills', details: '5 km steady pace + form drills' },
+            
+            // Weeks 9-12: Increasing Intensity
+            { week: 9, session: 'A', distance: '11 km', pace: '~8:45/km', brief: '11K Long Run', details: '11 km @ easy pace (8:45/km), optional 60 sec walk at km 6 & 9' },
+            { week: 9, session: 'B', distance: '~7 km', pace: '6:45/km', brief: '2K Tempo Repeats', details: '3×2 km @ 6:45/km, 3 min walk recovery' },
+            
+            { week: 10, session: 'A', distance: '12 km', pace: '~8:30/km', brief: '12K Long Run', details: '12 km LSD @ 8:30/km (walk breaks at km 6 & 10 OK)' },
+            { week: 10, session: 'B', distance: '~8 km', pace: '6:30-6:45/km', brief: '3K Tempo Repeats', details: '1 km warm-up, 2×3 km @ 6:30-6:45/km (2:30 walk), 1 km cooldown' },
+            
+            { week: 11, session: 'A', distance: '8 km', pace: 'Easy jog', brief: 'Recovery Easy Run', details: '8 km easy jog (Recovery week)' },
+            { week: 11, session: 'B', distance: '6 km', pace: 'Progression', brief: 'Progression Run', details: '6 km progression: start 9:00/km → finish 6:30/km' },
+            
+            { week: 12, session: 'A', distance: '13 km', pace: '8:15/km', brief: '13K with Fueling', details: '13 km @ 8:15/km, practice fuel/water every 20 min' },
+            { week: 12, session: 'B', distance: '8 km', pace: '6:15/km', brief: '3K Tempo', details: '3 km warm-up, 3 km @ 6:15/km, 2 km cooldown' },
+            
+            // Weeks 13-16: Threshold & Race Pace
+            { week: 13, session: 'A', distance: '14 km', pace: '8:15-8:30/km', brief: '14K Long Run', details: '14 km @ 8:15-8:30/km steady pace' },
+            { week: 13, session: 'B', distance: '~8 km', pace: '6:10-6:15/km', brief: 'Threshold Repeats', details: '1 km warm-up, 2×3 km @ 6:10-6:15/km (3 min rest), 1 km cooldown' },
+            
+            { week: 14, session: 'A', distance: '15 km', pace: '~8:15/km', brief: '15K Long Run', details: '15 km LSD @ 8:15/km, walk breaks every 5 km OK' },
+            { week: 14, session: 'B', distance: '~9 km', pace: '5:50-6:00/km', brief: 'Fast 3K Repeats', details: '3×3 km @ 5:50-6:00/km, 2:30 walk recovery' },
+            
+            { week: 15, session: 'A', distance: '10 km', pace: 'Easy jog', brief: 'Recovery Easy Run', details: '10 km easy jog (Recovery week)' },
+            { week: 15, session: 'B', distance: '8 km', pace: '5:45/km', brief: 'Race Pace Practice', details: '3 km warm-up, 3 km @ 5:45/km, 2 km cooldown' },
+            
+            { week: 16, session: 'A', distance: '16 km', pace: '~8:15/km', brief: '16K Nutrition Practice', details: '16 km LSD @ 8:15/km (practice nutrition/hydration strategy)' },
+            { week: 16, session: 'B', distance: '~10 km', pace: '6:00/km', brief: '5K Tempo Repeats', details: '2×5 km @ 6:00/km, 3 min rest between' },
+            
+            // Weeks 17-20: Sharpening & Taper Preparation
+            { week: 17, session: 'A', distance: '12 km', pace: '8:30/km', brief: 'Maintenance Run', details: '12 km maintenance @ 8:30/km' },
+            { week: 17, session: 'B', distance: '~6 km', pace: '5:40/km', brief: 'Short Speed Work', details: '4×1.5 km @ 5:40/km, 2 min walk recovery' },
+            
+            { week: 18, session: 'A', distance: '10 km', pace: '8:30/km', brief: 'Easy 10K', details: '10 km jog @ 8:30/km' },
+            { week: 18, session: 'B', distance: '8 km', pace: '5:40-5:45/km', brief: 'Race Pace Repeats', details: '2×3 km @ race pace (5:40-5:45/km), 1 km warm-up & cooldown' },
+            
+            { week: 19, session: 'A', distance: '6 km', pace: 'Zone 2', brief: 'Recovery Easy Run', details: '6 km @ easy pace (Zone 2) - Recovery week' },
+            { week: 19, session: 'B', distance: '5 km', pace: 'Race pace', brief: 'Race Pace + Jog', details: '3 km @ race pace, 2 km jog + strides' },
+            
+            { week: 20, session: 'A', distance: '5 km', pace: 'Light jog', brief: 'Mental Rehearsal', details: '5 km light jog with mental race rehearsal' },
+            { week: 20, session: 'B', distance: '~4 km', pace: 'Race pace', brief: 'Short Race Pace', details: '2×1 km @ race pace, walk breaks allowed' },
+            
+            // Weeks 21-23: Final Taper & Race
+            { week: 21, session: 'A', distance: '8 km', pace: '9:00/km', brief: 'Easy + Strides', details: '8 km easy @ 9:00/km + 4×20 sec strides (Sharpen & Rest)' },
+            { week: 21, session: 'B', distance: '8 km', pace: 'Race pace', brief: 'Race Pace Practice', details: '5 km with 3×1 km @ race pace, ample recovery' },
+            
+            { week: 22, session: 'A', distance: '4 km', pace: 'Easy + strides', brief: 'Pre-Race Taper', details: '4 km easy + 3 strides @ race pace (Pre-Race Taper)' },
+            { week: 22, session: 'B', distance: '3 km', pace: 'Easy + drills', brief: 'Keep Legs Fresh', details: '3 km easy + drills; keep legs fresh' },
+            
+            { week: 23, session: 'A', distance: '4 km', pace: 'Easy + strides', brief: 'Race Week Easy', details: '4 km easy + 2 strides (Race Week - Midweek)' },
+            { week: 23, session: 'B', distance: '21.1 km', pace: '7:06/km', brief: '🏁 HALF MARATHON!', details: 'RACE DAY! Target: 2:30:00. Fuel every 35-40 min, hydrate regularly. 1km warm-up, 1km cooldown' }
+        ];
+
+        let sessionData = {};
+
+        function initializeData() {
+            // Try to load from localStorage first
+            const saved = localStorage.getItem('halfMarathonProgress');
+            if (saved) {
+                sessionData = JSON.parse(saved);
+                // Add any missing sessions (in case of updates)
+                trainingData.forEach(session => {
+                    const sessionId = `week${session.week}${session.session}`;
+                    if (!sessionData[sessionId]) {
+                        sessionData[sessionId] = {
+                            completed: false,
+                            notes: '',
+                            ...session
+                        };
+                    }
+                });
+            } else {
+                // Create fresh data
+                trainingData.forEach(session => {
+                    const sessionId = `week${session.week}${session.session}`;
+                    sessionData[sessionId] = {
+                        completed: false,
+                        notes: '',
+                        ...session
+                    };
+                });
+            }
+            saveData();
+        }
+
+        function saveData() {
+            localStorage.setItem('halfMarathonProgress', JSON.stringify(sessionData));
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('trainingTableBody');
+            tbody.innerHTML = '';
+            
+            let currentPhase = '';
+            
+            trainingData.forEach(session => {
+                const sessionId = `week${session.week}${session.session}`;
+                const data = sessionData[sessionId];
+                
+                // Add phase headers
+                const newPhase = getPhase(session.week);
+                if (newPhase !== currentPhase) {
+                    const phaseRow = document.createElement('tr');
+                    phaseRow.innerHTML = `<td colspan="7" class="phase-header">${newPhase}</td>`;
+                    tbody.appendChild(phaseRow);
+                    currentPhase = newPhase;
+                }
+                
+                const row = document.createElement('tr');
+                if (data.completed) {
+                    row.classList.add('completed');
+                }
+                
+                row.innerHTML = `
+                    <td class="week-cell">Week ${session.week}</td>
+                    <td class="session-cell">${session.session}</td>
+                    <td class="distance-cell">${session.distance}</td>
+                    <td class="pace-cell">${session.pace}</td>
+                    <td class="workout-cell">
+                        <div class="workout-brief">${session.brief}</div>
+                        <div class="workout-details">${session.details}</div>
+                    </td>
+                    <td class="checkbox-cell">
+                        <div class="custom-checkbox ${data.completed ? 'checked' : ''}" 
+                             onclick="toggleCompletion('${sessionId}')">
+                            ${data.completed ? '✓' : ''}
+                        </div>
+                    </td>
+                    <td class="notes-cell">
+                        <textarea 
+                            class="notes-input" 
+                            placeholder="Distance covered:&#10;Time taken:&#10;Pace achieved:&#10;How you felt:&#10;Notes:"
+                            onchange="saveNotes('${sessionId}', this.value)"
+                        >${data.notes}</textarea>
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+            
+            updateStats();
+        }
+
+        function getPhase(week) {
+            if (week <= 4) return "Weeks 1–4: Base Establishment";
+            if (week <= 8) return "Weeks 5–8: Volume Build & Intro Tempo";
+            if (week <= 12) return "Weeks 9–12: Increasing Intensity";
+            if (week <= 16) return "Weeks 13–16: Threshold & Race Pace";
+            if (week <= 20) return "Weeks 17–20: Sharpening & Taper Preparation";
+            return "Weeks 21–23: Final Taper & Race";
+        }
+
+        function toggleCompletion(sessionId) {
+            sessionData[sessionId].completed = !sessionData[sessionId].completed;
+            saveData();
+            renderTable();
+        }
+
+        function saveNotes(sessionId, notes) {
+            sessionData[sessionId].notes = notes;
+            saveData();
+            updateStats();
+        }
+
+        function updateStats() {
+            const completedCount = Object.values(sessionData).filter(s => s.completed).length;
+            const totalSessions = trainingData.length;
+            const progressPercent = Math.round((completedCount / totalSessions) * 100);
+            
+            document.getElementById('completedSessions').textContent = completedCount;
+            document.getElementById('totalSessions').textContent = totalSessions;
+            document.getElementById('progressFill').style.width = progressPercent + '%';
+            document.getElementById('progressText').textContent = progressPercent + '% Complete';
+            
+            // Calculate current week
+            let currentWeek = 1;
+            for (let i = 1; i <= 23; i++) {
+                const weekACompleted = sessionData[`week${i}A`]?.completed;
+                const weekBCompleted = sessionData[`week${i}B`]?.completed;
+                if (weekACompleted && weekBCompleted) {
+                    currentWeek = Math.min(i + 1, 23);
+                } else {
+                    break;
+                }
+            }
+            document.getElementById('currentWeek').textContent = currentWeek;
+            
+            // Calculate total distance (estimate from completed sessions)
+            let totalDistance = 0;
+            Object.values(sessionData).forEach(session => {
+                if (session.completed) {
+                    const match = session.distance.match(/(\d+(?:\.\d+)?)/);
+                    if (match) {
+                        totalDistance += parseFloat(match[1]);
+                    }
+                }
+            });
+            document.getElementById('totalDistance').textContent = Math.round(totalDistance);
+        }
+
+        function exportData() {
+            const exportDiv = document.getElementById('exportData');
+            let csvData = "Week,Session,Target Distance,Target Pace,Workout Details,Completed,Notes\n";
+            
+            trainingData.forEach(session => {
+                const sessionId = `week${session.week}${session.session}`;
+                const data = sessionData[sessionId];
+                const completed = data.completed ? "✓" : "";
+                const notes = data.notes.replace(/"/g, '""').replace(/\n/g, ' ');
+                
+                csvData += `${session.week},${session.session},"${session.distance}","${session.pace}","${session.brief}: ${session.details}","${completed}","${notes}"\n`;
+            });
+            
+            exportDiv.textContent = csvData;
+            exportDiv.style.display = exportDiv.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function resetData() {
+            if (confirm('Are you sure you want to reset all progress? This cannot be undone.')) {
+                localStorage.removeItem('halfMarathonProgress');
+                initializeData();
+                renderTable();
+            }
+        }
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeData();
+            renderTable();
+        });
+    </script>
+</body>
+</html>
